@@ -4,3 +4,16 @@
 
 @import "nativewind/theme";
 
+@theme {
+	--color-background: #fff8f0;
+	--color-surface: #fff0dc;
+	--color-surface-2: #f0dbbf;
+	--color-muted: #c4a882;
+	--color-accent: #c08552;
+	--color-text: #4b2e2b;
+	--color-text-sub: #8c5a3c;
+
+	--font-outfit: "Outfit_400Regular";
+	--font-outfit-medium: "Outfit_500Medium";
+	--font-serif: "DMSerifDisplay_400Regular";
+}
