@@ -34,3 +34,4 @@ yarn-error.*
 # build output
 dist/
 build/
+src/generated
