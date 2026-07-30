@@ -1,7 +1,43 @@
 import { View, Text, Pressable } from "react-native";
 import { Flame, Music, RotateCcwClock, Turntable } from "lucide-react-native";
+import { useSpotifyAuthRequest } from "../../lib/spotifyAuth";
 
 export default function Login() {
+	const { request, promptAsync } = useSpotifyAuthRequest();
+	// console.log(request)
+
+	const handleLogin = async () => {
+		const result = await promptAsync();
+
+		if (result.type === "success") {
+			const { code } = result.params;
+			const codeVerifier = request?.codeVerifier;
+
+			try {
+				const response = await fetch(
+					"http://10.132.148.100:3000/api/auth/spotify/exchange",
+					{
+						method: "POST",
+						headers: {
+							"Content-Type": "application/json",
+						},
+						body: JSON.stringify({
+							code,
+							codeVerifier,
+							redirecturi: request?.redirectUri,
+						}),
+					},
+				);
+
+				const data = await response.json();
+				console.log("Server response:", data);
+			} catch (err) {
+				console.error("Exchange failed:", err);
+			}
+			console.log("Sending code to server...", { code, codeVerifier });
+		}
+		console.log("Auth result:", result);
+	};
 	return (
 		<View className="bg-background flex-1 items-center justify-center px-8 py-12 gap-20">
 			{/* Logo mark */}
@@ -43,7 +79,10 @@ export default function Login() {
 
 			{/* CTA + footer */}
 			<View className="self-stretch gap-4">
-				<Pressable className="bg-accent py-5 px-8 w-full items-center rounded-3xl active:opacity-80 hover:opacity-80">
+				<Pressable
+					onPress={handleLogin}
+					className="bg-accent py-5 px-8 w-full items-center rounded-3xl active:opacity-80 hover:opacity-80"
+				>
 					<Text className="font-outfit-medium text-surface text-xl">
 						Continue with Spotify
 					</Text>
