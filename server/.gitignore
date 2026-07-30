@@ -1,0 +1,36 @@
+# dependencies
+node_modules/
+
+.agents
+.claude
+.windsurf
+
+# debug
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# macOS
+.DS_Store
+*.pem
+
+# env files — critical, covers actual .env not just .env.local
+.env
+.env.*
+!.env.example
+
+# typescript
+*.tsbuildinfo
+
+# generated native folders
+/ios
+/android
+
+/generated/prisma
+
+# Expo
+.expo/
+
+# build output
+dist/
+build/

@@ -1,0 +1,32 @@
+{
+	"compilerOptions": {
+		"rootDir": "src",
+		"outDir": "dist",
+
+		"module": "nodenext",
+		"target": "es2022",
+		"moduleResolution": "nodenext",
+		"esModuleInterop": true,
+
+		"types": ["node"],
+		// and npm install -D @types/node
+
+		// Other Outputs
+		"sourceMap": true,
+		"declaration": true,
+		"declarationMap": true,
+
+		// Stricter Typechecking Options
+		"noUncheckedIndexedAccess": true,
+		"exactOptionalPropertyTypes": true,
+
+		// Recommended Options
+		"strict": true,
+		"jsx": "react-jsx",
+		"verbatimModuleSyntax": true,
+		"isolatedModules": true,
+		"noUncheckedSideEffectImports": true,
+		"moduleDetection": "force",
+		"skipLibCheck": true
+	}
+}
