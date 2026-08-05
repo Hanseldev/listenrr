@@ -6,7 +6,9 @@ import { Slot, useRouter, useSegments } from "expo-router";
 import { View } from "react-native";
 import * as WebBrowser from "expo-web-browser";
 import * as SecureStore from "expo-secure-store";
+import toast from "react-native-toast-message";
 import { useEffect, useState } from "react";
+import Toast from "react-native-toast-message";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -45,5 +47,10 @@ export default function RootLayout() {
 		return <View />;
 	}
 
-	return <Slot />;
+	return (
+		<>
+			<Slot />
+			<Toast />
+		</>
+	);
 }

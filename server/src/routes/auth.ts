@@ -1,5 +1,7 @@
 import { Router } from "express";
 import { prisma } from "../lib/prisma.js";
+import { scrobblerUser } from "../services/scrobbler.js";
+import axios from "axios";
 import jwt from "jsonwebtoken";
 
 const router = Router();
@@ -17,23 +19,18 @@ router.post("/spotify/exchange", async (req, res) => {
 			code_verifier: codeVerifier,
 		});
 
-		const tokenResponse = await fetch(
+		const tokenResponse = await axios.post(
 			"https://accounts.spotify.com/api/token",
-			{
-				method: "POST",
-				headers: {
-					"Content-Type": "application/x-www-form-urlencoded",
-				},
-				body: params,
-			},
+			params, // URLSearchParams still works as-is
+			{ headers: { "Content-Type": "application/x-www-form-urlencoded" } },
 		);
 
-		const tokenData = await tokenResponse.json();
+		const tokenData = tokenResponse.data;
 
-		const profileResponse = await fetch("https://api.spotify.com/v1/me", {
+		const profileResponse = await axios.get("https://api.spotify.com/v1/me", {
 			headers: { Authorization: `Bearer ${tokenData.access_token}` },
 		});
-		const profile = await profileResponse.json();
+		const profile = profileResponse.data;
 
 		const expiresAt = new Date(Date.now() + tokenData.expires_in * 1000);
 
@@ -43,12 +40,16 @@ router.post("/spotify/exchange", async (req, res) => {
 				spotifyAccessToken: tokenData.access_token,
 				spotifyRefreshToken: tokenData.refresh_token,
 				spotifyTokenExpiresAt: expiresAt,
+				displayName: profile.display_name,
+				profileImageUrl: profile.images?.[0]?.url ?? null,
 			},
 			create: {
 				spotifyId: profile.id,
 				spotifyAccessToken: tokenData.access_token,
 				spotifyRefreshToken: tokenData.refresh_token,
 				spotifyTokenExpiresAt: expiresAt,
+				displayName: profile.display_name,
+				profileImageUrl: profile.images?.[0]?.url ?? null,
 			},
 		});
 
@@ -65,6 +66,11 @@ router.post("/spotify/exchange", async (req, res) => {
 		console.error("Exchange error:", err);
 		res.status(500).json({ error: "Token exchange failed" });
 	}
+});
+
+router.get("/test-scrobble/:userId", async (req, res) => {
+	await scrobblerUser(req.params.userId);
+	res.json({ done: true });
 });
 
 export default router;
