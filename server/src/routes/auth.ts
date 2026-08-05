@@ -68,6 +68,4 @@ router.post("/spotify/exchange", async (req, res) => {
 	}
 });
 
-
-
 export default router;
