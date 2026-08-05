@@ -68,9 +68,6 @@ router.post("/spotify/exchange", async (req, res) => {
 	}
 });
 
-router.get("/test-scrobble/:userId", async (req, res) => {
-	await scrobblerUser(req.params.userId);
-	res.json({ done: true });
-});
+
 
 export default router;
