@@ -30,7 +30,7 @@ export default function Login() {
 			const codeVerifier = request?.codeVerifier;
 
 			const response = await fetch(
-				"http://10.156.193.100:3000/api/auth/spotify/exchange",
+				"http://10.34.43.100:3000/api/auth/spotify/exchange",
 				{
 					method: "POST",
 					headers: { "Content-Type": "application/json" },
