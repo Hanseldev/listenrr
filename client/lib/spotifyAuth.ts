@@ -12,6 +12,7 @@ const SCOPES = [
 	"user-library-read"
 ];
 
+// 
 export function useSpotifyAuthRequest() {
 	const redirectUri = AuthSession.makeRedirectUri({});
 
