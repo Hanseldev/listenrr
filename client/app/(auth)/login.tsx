@@ -15,7 +15,7 @@ export default function Login() {
 	const handleLogin = async () => {
 		setLoading(true);
 		const controller = new AbortController();
-		const timeoutId = setTimeout(() => controller.abort(), 8000);
+		const timeoutId = setTimeout(() => controller.abort(), 20000);
 
 		try {
 			const result = await promptAsync();
@@ -30,7 +30,7 @@ export default function Login() {
 			const codeVerifier = request?.codeVerifier;
 
 			const response = await fetch(
-				"http://10.34.43.100:3000/api/auth/spotify/exchange",
+				"http://10.146.141.100:3000/api/auth/spotify/exchange",
 				{
 					method: "POST",
 					headers: { "Content-Type": "application/json" },
