@@ -3,10 +3,17 @@ import { Pressable, Image } from "react-native";
 import * as SecureStore from "expo-secure-store";
 import { useEffect, useState } from "react";
 import { api } from "../../lib/api";
+import { LineChart } from "react-native-gifted-charts";
+import { Dimensions } from "react-native";
 
 type UserProfile = {
 	displayName: string;
 	profileImageUrl: string | null;
+};
+
+type TrendPoint = {
+	value: number;
+	label: string;
 };
 
 type StatsSummary = {
@@ -15,6 +22,7 @@ type StatsSummary = {
 		lastMonthHoursListened: string;
 		currentMonthHoursListened: string;
 	};
+	listeningTrend: TrendPoint[];
 };
 
 function getGreeting() {
@@ -61,13 +69,19 @@ export default function Home() {
 
 	const percentChange = (current: number, last: number): number | null => {
 		if (last === 0) return null;
-		return Number(((current - last / last) * 100).toFixed(0));
+		return Number((((current - last) / last) * 100).toFixed(0));
 	};
 
-	const change = percentChange(
-		Number(stats!.hoursListened.currentMonthHoursListened),
-		Number(stats!.hoursListened.lastMonthHoursListened),
-	);
+	const change = stats
+		? percentChange(
+				Number(stats.hoursListened.currentMonthHoursListened),
+				Number(stats.hoursListened.lastMonthHoursListened),
+			)
+		: null;
+
+	const screenWidth = Dimensions.get("window").width;
+	const chartWidth = screenWidth - 64;
+
 	return (
 		<View className="flex min-h-screen bg-background pt-16 p-8">
 			{loading ? (
@@ -98,7 +112,7 @@ export default function Home() {
 					{statsLoading ? (
 						<Text>Loading stats...</Text>
 					) : (
-						<View className="flex gap-4 w-full bg-surface-2 rounded-2xl p-4">
+						<View className="flex gap-4 w-full bg-surface-2 rounded-2xl p-4 shadow-stone-300 shadow-lg mb-8">
 							<Text className="text-accent uppercase font-semibold text-sm">
 								This Month
 							</Text>
@@ -115,19 +129,51 @@ export default function Home() {
 								{stats!.totalPlaysThisMonth} total plays
 							</Text>
 
-							{/* Insert rocky hill chart here. chart draws on its own on load */}
+							<View className="w-full -mt-16">
+								{!statsLoading && stats && (
+									<LineChart
+										data={stats.listeningTrend}
+										adjustToWidth
+										parentWidth={chartWidth}
+										yAxisLabelWidth={0}
+										xAxisLabelsHeight={0}
+										height={100}
+										color="#C08552"
+										thickness={2.5}
+										startFillColor="#C08552"
+										endFillColor="#C08552"
+										startOpacity={0.15}
+										endOpacity={0.1}
+										areaChart
+										curved
+										hideDataPoints
+										hideYAxisText
+										hideAxesAndRules
+										xAxisThickness={0}
+										yAxisThickness={0}
+										initialSpacing={0}
+										endSpacing={0}
+										disableScroll
+									/>
+								)}
+							</View>
 						</View>
 					)}
+
+					{/* Top tracks section */}
+					<View className="flex flex-row w-full justify-between">
+						<View className="flex flex-row">
+							<Text>Top Tracks</Text>
+							<Text>All Time</Text>
+						</View>
+						<View><Text>See all &gt;</Text></View>
+					</View>
 				</>
 			)}
 
-			<Text className="text-text font-serif text-2xl">
-				Welcome to Listenrr 🎧
-			</Text>
-
 			<Pressable
 				onPress={() => SecureStore.deleteItemAsync("sessionToken")}
-				className="bg-red-300 p-4 mb-4"
+				className="bg-red-300 p-4 mb-4 hidden"
 			>
 				<Text>Clear session (dev only)</Text>
 			</Pressable>
@@ -136,7 +182,7 @@ export default function Home() {
 				onPress={async () =>
 					console.log("JWT:", await SecureStore.getItemAsync("sessionToken"))
 				}
-				className="bg-orange-500 p-4"
+				className="bg-orange-500 p-4 hidden"
 			>
 				<Text>Print JWT (dev only)</Text>
 			</Pressable>

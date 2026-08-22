@@ -152,3 +152,48 @@ export async function getLongestStreak(userId: string) {
 
 	return longestStreak;
 }
+
+// Still AI generated
+export async function getListeningTrend(userId: string) {
+	const DAYS = 28;
+	const now = new Date();
+	const start = new Date(
+		Date.UTC(
+			now.getUTCFullYear(),
+			now.getUTCMonth(),
+			now.getUTCDate() - (DAYS - 1),
+		),
+	);
+
+	const plays = await prisma.play.findMany({
+		where: {
+			userId,
+			playedAt: {
+				gte: start,
+			},
+		},
+		select: {
+			playedAt: true,
+			durationMs: true,
+		},
+	});
+
+	const buckets = new Array(DAYS).fill(0);
+
+	for (const play of plays) {
+		const dayIndex = Math.floor(
+			(play.playedAt.getTime() - start.getTime()) / (1000 * 60 * 60 * 24),
+		);
+		if (dayIndex >= 0 && dayIndex < DAYS) {
+			buckets[dayIndex] += play.durationMs;
+		}
+	}
+
+	return buckets.map((totalMs, index) => {
+		const hours = Number((totalMs / 1000 / 60 / 60).toFixed(1));
+
+		return {
+			value: hours,
+		};
+	});
+}

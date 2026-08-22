@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { prisma } from "../lib/prisma.js";
 import { requireAuth } from "../middleware/auth.js";
-import { getTotalPlaysThisMonth, getHoursListened } from "../services/stats.js";
+import { getTotalPlaysThisMonth, getHoursListened, getListeningTrend } from "../services/stats.js";
 
 const router = Router();
 
@@ -28,11 +28,12 @@ router.get("/me", requireAuth, async (req, res) => {
 
 router.get("/stats/summary", requireAuth, async (req, res) => {
 	const totalPlaysThisMonth = await getTotalPlaysThisMonth(req.userId);
-
 	const hoursListened = await getHoursListened(req.userId);
+    const listeningTrend = await getListeningTrend(req.userId)
 	res.json({
 		totalPlaysThisMonth: totalPlaysThisMonth,
 		hoursListened: hoursListened,
+        listeningTrend: listeningTrend
 	});
 });
 

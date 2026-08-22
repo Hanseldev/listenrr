@@ -6,6 +6,7 @@ import {
 	getTopTracks,
 	getTopArtists,
 	getLongestStreak,
+	getListeningTrend
 } from "../services/stats.js";
 import {
 	getLikedTracksPage,
@@ -61,6 +62,11 @@ router.get("/avg-release-year-liked/:userId", async (req, res) => {
 router.get("/longest-streak/:userId", async (req, res) => {
 	const result = await getLongestStreak(req.params.userId);
 	res.json({ longestStreak: result });
+});
+
+router.get("/listening-trend/:userId", async (req, res) => {
+	const result = await getListeningTrend(req.params.userId);
+	res.json(result);
 });
 
 export default router;
