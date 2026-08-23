@@ -1,4 +1,5 @@
-import { View, Text } from "react-native";
+import { View, Text, ScrollView } from "react-native";
+import { ScrollView as HScrollView } from "react-native";
 import { Pressable, Image } from "react-native";
 import * as SecureStore from "expo-secure-store";
 import { useEffect, useState } from "react";
@@ -6,6 +7,7 @@ import { api } from "../../lib/api";
 import TrackCard from "../../components/home/TrackCard";
 import { LineChart } from "react-native-gifted-charts";
 import { Dimensions } from "react-native";
+import ArtistCard from "../../components/shared/ArtistCard";
 
 type UserProfile = {
 	displayName: string;
@@ -24,6 +26,8 @@ type StatsSummary = {
 		currentMonthHoursListened: string;
 	};
 	listeningTrend: TrendPoint[];
+	avgReleaseYear: number;
+	longestStreak: number;
 };
 
 type Track = {
@@ -32,6 +36,12 @@ type Track = {
 	artistNames: string;
 	albumArtUrl: string | null;
 	_count: { trackId: number };
+};
+
+type Artist = {
+	artistName: string;
+	imageUrl: string | null;
+	playCount: number;
 };
 
 function getGreeting() {
@@ -92,6 +102,22 @@ export default function Home() {
 		})();
 	}, []);
 
+	const [topArtists, setTopArtists] = useState<Artist[]>([]);
+	const [topArtistsLoading, setTopArtistsLoading] = useState(true);
+
+	useEffect(() => {
+		(async () => {
+			try {
+				const data = await api.get("/api/stats/top-artists?limit=5");
+				setTopArtists(data);
+			} catch (err) {
+				console.error("Failed to fetch /api/stats/top-artists:", err);
+			} finally {
+				setTopArtistsLoading(false);
+			}
+		})();
+	}, []);
+
 	const percentChange = (current: number, last: number): number | null => {
 		if (last === 0) return null;
 		return Number((((current - last) / last) * 100).toFixed(0));
@@ -108,13 +134,16 @@ export default function Home() {
 	const chartWidth = screenWidth - 64;
 
 	return (
-		<View className="flex min-h-screen bg-background pt-16 p-8">
+		<ScrollView
+			className="flex-1 bg-background"
+			contentContainerClassName="pt-16 p-8"
+		>
 			{loading ? (
 				<Text>Loading...</Text>
 			) : (
 				<>
 					{/* Greeting section */}
-					<View className="flex flex-row justify-between items-center mb-8">
+					<View className="flex flex-row justify-between items-center mb-6">
 						<View className="flex">
 							<Text className="font-serif text-xl text-text-sub">
 								{getGreeting()},
@@ -137,7 +166,7 @@ export default function Home() {
 					{statsLoading ? (
 						<Text>Loading stats...</Text>
 					) : (
-						<View className="flex gap-4 w-full bg-surface-2 rounded-2xl p-4 shadow-stone-300 shadow-lg mb-8">
+						<View className="flex gap-4 w-full bg-surface-2 rounded-2xl p-4 shadow-stone-300 shadow-lg mb-6">
 							<Text className="text-text-sub uppercase font-semibold text-sm">
 								This Month
 							</Text>
@@ -151,11 +180,11 @@ export default function Home() {
 								{change === null
 									? "No data from last month. "
 									: `Up ${change}% from last month. `}
-								{stats!.totalPlaysThisMonth} total plays
+								{stats?.totalPlaysThisMonth} total plays
 							</Text>
 
 							<View className="w-full -mt-16">
-								{!statsLoading && stats && (
+								{stats && (
 									<LineChart
 										data={stats.listeningTrend}
 										adjustToWidth
@@ -186,7 +215,7 @@ export default function Home() {
 					)}
 
 					{/* Top tracks section */}
-					<View className="w-full mb-3">
+					<View className="w-full mb-6">
 						<View className="flex flex-row justify-between items-baseline">
 							<View className="flex flex-row items-baseline gap-2">
 								<Text className="font-serif text-text-sub font-semibold">
@@ -219,6 +248,69 @@ export default function Home() {
 							</View>
 						)}
 					</View>
+
+					{/* Top artists section */}
+					<View className="w-full mb-6">
+						<View className="flex flex-row justify-between items-baseline">
+							<View className="flex flex-row items-baseline gap-2">
+								<Text className="font-serif text-text-sub font-semibold">
+									TOP ARTISTS
+								</Text>
+								<Text className="text-text-sub">·</Text>
+								<Text className="font-serif text-text-sub font-semibold uppercase">
+									All Time
+								</Text>
+							</View>
+							<Text className="text-accent text-sm font-medium">See all ›</Text>
+						</View>
+
+						{topArtistsLoading ? (
+							<Text className="text-text-sub text-sm mt-2">
+								Loading artists...
+							</Text>
+						) : (
+							<HScrollView
+								horizontal
+								showsHorizontalScrollIndicator={false}
+								className="mt-2"
+							>
+								<View className="flex flex-row gap-3">
+									{topArtists.map((artist) => (
+										<ArtistCard
+											key={artist.artistName}
+											artistName={artist.artistName}
+											imageUrl={artist.imageUrl}
+											playCount={artist.playCount}
+										/>
+									))}
+								</View>
+							</HScrollView>
+						)}
+					</View>
+
+					{/* Small stats row */}
+					{!statsLoading && stats && (
+						<View className="flex flex-row gap-3 mb-6">
+							<View className="flex-1 bg-surface rounded-2xl p-4 gap-1">
+								<Text className="text-text-sub text-xs uppercase font-semibold">
+									Longest Streak
+								</Text>
+								<Text className="text-text font-serif font-bold text-3xl">
+									{stats.longestStreak}
+									<Text className="text-sm font-normal"> days</Text>
+								</Text>
+							</View>
+
+							<View className="flex-1 bg-surface rounded-2xl p-4 gap-1">
+								<Text className="text-text-sub text-xs uppercase font-semibold">
+									Avg Release Year
+								</Text>
+								<Text className="text-text font-serif font-bold text-3xl">
+									{stats.avgReleaseYear}
+								</Text>
+							</View>
+						</View>
+					)}
 				</>
 			)}
 
@@ -237,6 +329,6 @@ export default function Home() {
 			>
 				<Text>Print JWT (dev only)</Text>
 			</Pressable>
-		</View>
+		</ScrollView>
 	);
 }

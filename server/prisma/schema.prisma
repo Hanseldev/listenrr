@@ -43,3 +43,10 @@ model Play {
 
   @@unique([userId, trackId, playedAt])
 }
+
+model ArtistImageCache {
+	id            String   @id @default(uuid())
+	artistName    String   @unique
+	imageUrl      String?
+	lastFetchedAt DateTime @default(now())
+}

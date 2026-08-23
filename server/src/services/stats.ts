@@ -1,4 +1,5 @@
 import { prisma } from "../lib/prisma.js";
+import { getArtistImage } from "./artistImage.js";
 
 export async function getTotalPlaysThisMonth(userId: string) {
 	const now = new Date();
@@ -105,7 +106,13 @@ export async function getTopArtists(userId: string, limit: number = 100) {
 		.sort((a, b) => b.playCount - a.playCount)
 		.slice(0, limit);
 
-	return sorted;
+	const withImages = [];
+	for (const artist of sorted) {
+		const imageUrl = await getArtistImage(userId, artist.artistName);
+		withImages.push({ ...artist, imageUrl });
+	}
+
+	return withImages;
 }
 
 // AI generated code
