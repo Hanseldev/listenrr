@@ -9,8 +9,10 @@ const SCOPES = [
 	"user-read-private",
 	"user-top-read",
 	"user-read-recently-played",
+	"user-library-read"
 ];
 
+// 
 export function useSpotifyAuthRequest() {
 	const redirectUri = AuthSession.makeRedirectUri({});
 

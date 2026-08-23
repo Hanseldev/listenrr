@@ -4,7 +4,7 @@ import { useSpotifyAuthRequest } from "../../lib/spotifyAuth";
 import * as SecureStore from "expo-secure-store";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Alert } from "react-native";
+import Toast from "react-native-toast-message";
 
 export default function Login() {
 	const router = useRouter();
@@ -14,10 +14,15 @@ export default function Login() {
 
 	const handleLogin = async () => {
 		setLoading(true);
+		const controller = new AbortController();
+		const timeoutId = setTimeout(() => controller.abort(), 20000);
+
 		try {
 			const result = await promptAsync();
+
 			if (result.type !== "success") {
 				setLoading(false);
+				clearTimeout(timeoutId);
 				return;
 			}
 
@@ -25,13 +30,16 @@ export default function Login() {
 			const codeVerifier = request?.codeVerifier;
 
 			const response = await fetch(
-				"http://10.132.148.100:3000/api/auth/spotify/exchange",
+				`${process.env.EXPO_PUBLIC_API_URL}/api/auth/spotify/exchange`,
 				{
 					method: "POST",
 					headers: { "Content-Type": "application/json" },
 					body: JSON.stringify({ code, codeVerifier, redirectUri }),
+					signal: controller.signal,
 				},
 			);
+
+			clearTimeout(timeoutId);
 
 			if (!response.ok) {
 				throw new Error("Server error");
@@ -41,11 +49,20 @@ export default function Login() {
 
 			if (data.sessionToken) {
 				await SecureStore.setItemAsync("sessionToken", data.sessionToken);
-				router.replace("/(tabs)/home"); // adjust to your actual main route
+				router.replace("/(tabs)/home");
 			}
 		} catch (err) {
 			console.error("Login failed:", err);
-			Alert.alert("Something went wront", "Please try again.");
+
+			const isTimeout = err instanceof Error && err.name === "AbortError";
+
+			Toast.show({
+				type: "error",
+				text1: isTimeout ? "Request timed out" : "Something went wrong",
+				text2: isTimeout ? "Check your connection." : "Please try again.",
+				position: "bottom",
+				visibilityTime: 5000,
+			});
 		} finally {
 			setLoading(false);
 		}

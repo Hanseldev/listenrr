@@ -18,6 +18,35 @@ model User {
   spotifyAccessToken    String
   spotifyRefreshToken   String
   spotifyTokenExpiresAt DateTime
+  displayName           String?
+  profileImageUrl       String?
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
+
+  plays                 Play[]
+}
+
+model Play {
+  id            String   @id @default(uuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id])
+
+  trackId       String   // Spotify's track ID
+  trackName     String
+  artistNames   String   // comma-joined for simplicity, e.g. "Artist A, Artist B"
+  albumArtUrl   String?
+  durationMs    Int
+  releaseYear   Int?
+
+  playedAt      DateTime // when the track was played (from Spotify)
+  createdAt     DateTime @default(now()) // when we stored it
+
+  @@unique([userId, trackId, playedAt])
+}
+
+model ArtistImageCache {
+	id            String   @id @default(uuid())
+	artistName    String   @unique
+	imageUrl      String?
+	lastFetchedAt DateTime @default(now())
 }
