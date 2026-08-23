@@ -1,45 +1,20 @@
-import { View, Text, ScrollView } from "react-native";
-import { ScrollView as HScrollView } from "react-native";
-import { Pressable, Image } from "react-native";
+import { View, Text, ScrollView, Pressable } from "react-native";
 import * as SecureStore from "expo-secure-store";
 import { useUserProfile } from "../../hooks/useUserProfile";
+import { useStatsSummary } from "../../hooks/useStatsSummary";
 import { useTopTracks } from "../../hooks/useTopTracks";
 import { useTopArtists } from "../../hooks/useTopArtists";
-import TrackCard from "../../components/home/TrackCard";
-import { LineChart } from "react-native-gifted-charts";
-import { Dimensions } from "react-native";
-import ArtistCard from "../../components/shared/ArtistCard";
-import { useStatsSummary } from "../../hooks/useStatsSummary";
-
-function getGreeting() {
-	const hours = new Date().getHours();
-	return hours < 12
-		? "Good morning"
-		: hours < 18
-			? "Good afternoon"
-			: "Good evening";
-}
+import GreetingHeader from "../../components/home/GreetingHeader";
+import HoursCard from "../../components/home/HoursCard";
+import TopTracksSection from "../../components/home/TopTracksSection";
+import TopArtistsSection from "../../components/home/TopArtistsSection";
+import StreakStatsRow from "../../components/home/StreakStatsRow";
 
 export default function Home() {
 	const { user, loading } = useUserProfile();
 	const { stats, loading: statsLoading } = useStatsSummary();
 	const { topTracks, loading: topTracksLoading } = useTopTracks();
 	const { topArtists, loading: topArtistsLoading } = useTopArtists();
-
-	const percentChange = (current: number, last: number): number | null => {
-		if (last === 0) return null;
-		return Number((((current - last) / last) * 100).toFixed(0));
-	};
-
-	const change = stats
-		? percentChange(
-				Number(stats.hoursListened.currentMonthHoursListened),
-				Number(stats.hoursListened.lastMonthHoursListened),
-			)
-		: null;
-
-	const screenWidth = Dimensions.get("window").width;
-	const chartWidth = screenWidth - 64;
 
 	return (
 		<ScrollView
@@ -50,175 +25,18 @@ export default function Home() {
 				<Text>Loading...</Text>
 			) : (
 				<>
-					{/* Greeting section */}
-					<View className="flex flex-row justify-between items-center mb-6">
-						<View className="flex">
-							<Text className="font-serif text-xl text-text-sub">
-								{getGreeting()},
-							</Text>
-							<Text className="font-serif font-bold text-2xl text-text tracking-wide">
-								{user?.displayName ?? "Listener"}
-							</Text>
-						</View>
-						<View>
-							{user?.profileImageUrl && (
-								<Image
-									source={{ uri: user.profileImageUrl }}
-									className="w-12 h-12 rounded-full"
-								/>
-							)}
-						</View>
-					</View>
+					<GreetingHeader user={user} />
 
-					{/* Hours listened section */}
 					{statsLoading ? (
 						<Text>Loading stats...</Text>
 					) : (
-						<View className="flex gap-4 w-full bg-surface-2 rounded-2xl p-4 shadow-stone-300 shadow-lg mb-6">
-							<Text className="text-text-sub uppercase font-semibold text-sm">
-								This Month
-							</Text>
-							<Text className="text-text">
-								<Text className="font-black text-5xl font-serif">
-									{stats?.hoursListened.currentMonthHoursListened}
-								</Text>{" "}
-								hrs listened
-							</Text>
-							<Text className="text-text-sub text-xs">
-								{change === null
-									? "No data from last month. "
-									: `Up ${change}% from last month. `}
-								{stats?.totalPlaysThisMonth} total plays
-							</Text>
-
-							<View className="w-full -mt-16">
-								{stats && (
-									<LineChart
-										data={stats.listeningTrend}
-										adjustToWidth
-										parentWidth={chartWidth}
-										yAxisLabelWidth={0}
-										xAxisLabelsHeight={0}
-										height={100}
-										color="#C08552"
-										thickness={2.5}
-										startFillColor="#C08552"
-										endFillColor="#C08552"
-										startOpacity={0.15}
-										endOpacity={0.1}
-										areaChart
-										curved
-										hideDataPoints
-										hideYAxisText
-										hideAxesAndRules
-										xAxisThickness={0}
-										yAxisThickness={0}
-										initialSpacing={0}
-										endSpacing={0}
-										disableScroll
-									/>
-								)}
-							</View>
-						</View>
+						stats && <HoursCard stats={stats} />
 					)}
 
-					{/* Top tracks section */}
-					<View className="w-full mb-6">
-						<View className="flex flex-row justify-between items-baseline">
-							<View className="flex flex-row items-baseline gap-2">
-								<Text className="font-serif text-text-sub font-semibold">
-									TOP TRACKS
-								</Text>
-								<Text className="text-text-sub">·</Text>
-								<Text className="font-serif text-text-sub font-semibold uppercase">
-									All Time
-								</Text>
-							</View>
-							<Text className="text-accent text-sm font-medium">See all ›</Text>
-						</View>
+					<TopTracksSection tracks={topTracks} loading={topTracksLoading} />
+					<TopArtistsSection artists={topArtists} loading={topArtistsLoading} />
 
-						{topTracksLoading ? (
-							<Text className="text-text-sub text-sm mt-2">
-								Loading tracks...
-							</Text>
-						) : (
-							<View className="flex gap-1 mt-2">
-								{topTracks.map((track, index) => (
-									<TrackCard
-										key={track.trackId}
-										position={index + 1}
-										trackName={track.trackName}
-										artistNames={track.artistNames}
-										albumArtUrl={track.albumArtUrl}
-										playCount={track._count.trackId}
-									/>
-								))}
-							</View>
-						)}
-					</View>
-
-					{/* Top artists section */}
-					<View className="w-full mb-6">
-						<View className="flex flex-row justify-between items-baseline">
-							<View className="flex flex-row items-baseline gap-2">
-								<Text className="font-serif text-text-sub font-semibold">
-									TOP ARTISTS
-								</Text>
-								<Text className="text-text-sub">·</Text>
-								<Text className="font-serif text-text-sub font-semibold uppercase">
-									All Time
-								</Text>
-							</View>
-							<Text className="text-accent text-sm font-medium">See all ›</Text>
-						</View>
-
-						{topArtistsLoading ? (
-							<Text className="text-text-sub text-sm mt-2">
-								Loading artists...
-							</Text>
-						) : (
-							<HScrollView
-								horizontal
-								showsHorizontalScrollIndicator={false}
-								className="mt-2"
-							>
-								<View className="flex flex-row gap-3">
-									{topArtists.map((artist) => (
-										<ArtistCard
-											key={artist.artistName}
-											artistName={artist.artistName}
-											imageUrl={artist.imageUrl}
-											playCount={artist.playCount}
-										/>
-									))}
-								</View>
-							</HScrollView>
-						)}
-					</View>
-
-					{/* Small stats row */}
-					{!statsLoading && stats && (
-						<View className="flex flex-row gap-3 mb-6">
-							<View className="flex-1 bg-surface rounded-2xl p-4 gap-1">
-								<Text className="text-text-sub text-xs uppercase font-semibold">
-									Longest Streak
-								</Text>
-								<Text className="text-text font-serif font-bold text-3xl">
-									{stats.longestStreak}
-									<Text className="text-sm font-normal"> days</Text>
-								</Text>
-							</View>
-
-							<View className="flex-1 bg-surface rounded-2xl p-4 gap-1">
-								<Text className="text-text-sub text-xs uppercase font-semibold">
-									Avg Release Year
-								</Text>
-								<Text className="text-text font-serif font-bold text-3xl">
-									{stats.avgReleaseYear}
-								</Text>
-							</View>
-						</View>
-					)}
+					{!statsLoading && stats && <StreakStatsRow stats={stats} />}
 				</>
 			)}
 

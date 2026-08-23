@@ -30,7 +30,7 @@ export default function Login() {
 			const codeVerifier = request?.codeVerifier;
 
 			const response = await fetch(
-				"http://10.146.141.100:3000/api/auth/spotify/exchange",
+				`${process.env.EXPO_PUBLIC_API_URL}/api/auth/spotify/exchange`,
 				{
 					method: "POST",
 					headers: { "Content-Type": "application/json" },
