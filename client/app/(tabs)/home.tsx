@@ -2,47 +2,14 @@ import { View, Text, ScrollView } from "react-native";
 import { ScrollView as HScrollView } from "react-native";
 import { Pressable, Image } from "react-native";
 import * as SecureStore from "expo-secure-store";
-import { useEffect, useState } from "react";
-import { api } from "../../lib/api";
+import { useUserProfile } from "../../hooks/useUserProfile";
+import { useTopTracks } from "../../hooks/useTopTracks";
+import { useTopArtists } from "../../hooks/useTopArtists";
 import TrackCard from "../../components/home/TrackCard";
 import { LineChart } from "react-native-gifted-charts";
 import { Dimensions } from "react-native";
 import ArtistCard from "../../components/shared/ArtistCard";
-
-type UserProfile = {
-	displayName: string;
-	profileImageUrl: string | null;
-};
-
-type TrendPoint = {
-	value: number;
-	label: string;
-};
-
-type StatsSummary = {
-	totalPlaysThisMonth: number;
-	hoursListened: {
-		lastMonthHoursListened: string;
-		currentMonthHoursListened: string;
-	};
-	listeningTrend: TrendPoint[];
-	avgReleaseYear: number;
-	longestStreak: number;
-};
-
-type Track = {
-	trackId: string;
-	trackName: string;
-	artistNames: string;
-	albumArtUrl: string | null;
-	_count: { trackId: number };
-};
-
-type Artist = {
-	artistName: string;
-	imageUrl: string | null;
-	playCount: number;
-};
+import { useStatsSummary } from "../../hooks/useStatsSummary";
 
 function getGreeting() {
 	const hours = new Date().getHours();
@@ -54,69 +21,10 @@ function getGreeting() {
 }
 
 export default function Home() {
-	const [user, setUser] = useState<UserProfile | null>(null);
-	const [loading, setLoading] = useState(true);
-
-	useEffect(() => {
-		(async () => {
-			try {
-				const data = await api.get("/api/me");
-				setUser(data);
-			} catch (err) {
-				console.error("Failed to fetch /api/me:", err);
-			} finally {
-				setLoading(false);
-			}
-		})();
-	}, []);
-
-	const [stats, setStats] = useState<StatsSummary | null>(null);
-	const [statsLoading, setStatsLoading] = useState(true);
-
-	useEffect(() => {
-		(async () => {
-			try {
-				const data = await api.get("/api/stats/summary");
-				setStats(data);
-			} catch (err) {
-				console.error("Failed to fetch /api/stats/summary:", err);
-			} finally {
-				setStatsLoading(false);
-			}
-		})();
-	}, []);
-
-	const [topTracks, setTopTracks] = useState<Track[]>([]);
-	const [topTracksLoading, setTopTracksLoading] = useState(true);
-
-	useEffect(() => {
-		(async () => {
-			try {
-				const data = await api.get("/api/stats/top-tracks?limit=5");
-				setTopTracks(data);
-			} catch (err) {
-				console.error("Failed to fetch /api/stats/top-tracks:", err);
-			} finally {
-				setTopTracksLoading(false);
-			}
-		})();
-	}, []);
-
-	const [topArtists, setTopArtists] = useState<Artist[]>([]);
-	const [topArtistsLoading, setTopArtistsLoading] = useState(true);
-
-	useEffect(() => {
-		(async () => {
-			try {
-				const data = await api.get("/api/stats/top-artists?limit=5");
-				setTopArtists(data);
-			} catch (err) {
-				console.error("Failed to fetch /api/stats/top-artists:", err);
-			} finally {
-				setTopArtistsLoading(false);
-			}
-		})();
-	}, []);
+	const { user, loading } = useUserProfile();
+	const { stats, loading: statsLoading } = useStatsSummary();
+	const { topTracks, loading: topTracksLoading } = useTopTracks();
+	const { topArtists, loading: topArtistsLoading } = useTopArtists();
 
 	const percentChange = (current: number, last: number): number | null => {
 		if (last === 0) return null;
