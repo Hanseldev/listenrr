@@ -3,6 +3,7 @@ import { Pressable, Image } from "react-native";
 import * as SecureStore from "expo-secure-store";
 import { useEffect, useState } from "react";
 import { api } from "../../lib/api";
+import TrackCard from "../../components/home/TrackCard";
 import { LineChart } from "react-native-gifted-charts";
 import { Dimensions } from "react-native";
 
@@ -23,6 +24,14 @@ type StatsSummary = {
 		currentMonthHoursListened: string;
 	};
 	listeningTrend: TrendPoint[];
+};
+
+type Track = {
+	trackId: string;
+	trackName: string;
+	artistNames: string;
+	albumArtUrl: string | null;
+	_count: { trackId: number };
 };
 
 function getGreeting() {
@@ -67,6 +76,22 @@ export default function Home() {
 		})();
 	}, []);
 
+	const [topTracks, setTopTracks] = useState<Track[]>([]);
+	const [topTracksLoading, setTopTracksLoading] = useState(true);
+
+	useEffect(() => {
+		(async () => {
+			try {
+				const data = await api.get("/api/stats/top-tracks?limit=5");
+				setTopTracks(data);
+			} catch (err) {
+				console.error("Failed to fetch /api/stats/top-tracks:", err);
+			} finally {
+				setTopTracksLoading(false);
+			}
+		})();
+	}, []);
+
 	const percentChange = (current: number, last: number): number | null => {
 		if (last === 0) return null;
 		return Number((((current - last) / last) * 100).toFixed(0));
@@ -91,7 +116,7 @@ export default function Home() {
 					{/* Greeting section */}
 					<View className="flex flex-row justify-between items-center mb-8">
 						<View className="flex">
-							<Text className="font-serif text-xl text-accent">
+							<Text className="font-serif text-xl text-text-sub">
 								{getGreeting()},
 							</Text>
 							<Text className="font-serif font-bold text-2xl text-text tracking-wide">
@@ -113,7 +138,7 @@ export default function Home() {
 						<Text>Loading stats...</Text>
 					) : (
 						<View className="flex gap-4 w-full bg-surface-2 rounded-2xl p-4 shadow-stone-300 shadow-lg mb-8">
-							<Text className="text-accent uppercase font-semibold text-sm">
+							<Text className="text-text-sub uppercase font-semibold text-sm">
 								This Month
 							</Text>
 							<Text className="text-text">
@@ -122,7 +147,7 @@ export default function Home() {
 								</Text>{" "}
 								hrs listened
 							</Text>
-							<Text className="text-accent text-xs">
+							<Text className="text-text-sub text-xs">
 								{change === null
 									? "No data from last month. "
 									: `Up ${change}% from last month. `}
@@ -161,12 +186,38 @@ export default function Home() {
 					)}
 
 					{/* Top tracks section */}
-					<View className="flex flex-row w-full justify-between">
-						<View className="flex flex-row">
-							<Text>Top Tracks</Text>
-							<Text>All Time</Text>
+					<View className="w-full mb-3">
+						<View className="flex flex-row justify-between items-baseline">
+							<View className="flex flex-row items-baseline gap-2">
+								<Text className="font-serif text-text-sub font-semibold">
+									TOP TRACKS
+								</Text>
+								<Text className="text-text-sub">·</Text>
+								<Text className="font-serif text-text-sub font-semibold uppercase">
+									All Time
+								</Text>
+							</View>
+							<Text className="text-accent text-sm font-medium">See all ›</Text>
 						</View>
-						<View><Text>See all &gt;</Text></View>
+
+						{topTracksLoading ? (
+							<Text className="text-text-sub text-sm mt-2">
+								Loading tracks...
+							</Text>
+						) : (
+							<View className="flex gap-1 mt-2">
+								{topTracks.map((track, index) => (
+									<TrackCard
+										key={track.trackId}
+										position={index + 1}
+										trackName={track.trackName}
+										artistNames={track.artistNames}
+										albumArtUrl={track.albumArtUrl}
+										playCount={track._count.trackId}
+									/>
+								))}
+							</View>
+						)}
 					</View>
 				</>
 			)}
