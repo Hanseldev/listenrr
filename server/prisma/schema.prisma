@@ -24,6 +24,7 @@ model User {
   updatedAt             DateTime @updatedAt
 
   plays                 Play[]
+  statsCache              StatsCache?
 }
 
 model Play {
@@ -49,4 +50,16 @@ model ArtistImageCache {
 	artistName    String   @unique
 	imageUrl      String?
 	lastFetchedAt DateTime @default(now())
+}
+
+model StatsCache {
+	id                  String   @id @default(uuid())
+	userId              String   @unique
+	totalPlaysThisMonth Int
+	hoursListened       Json
+	listeningTrend      Json
+	avgReleaseYear      Int
+	longestStreak       Int
+	computedAt          DateTime @default(now())
+	user                User     @relation(fields: [userId], references: [id])
 }

@@ -6,8 +6,10 @@ import { useTopTracks } from "../../hooks/useTopTracks";
 import { useTopArtists } from "../../hooks/useTopArtists";
 import GreetingHeader from "../../components/home/GreetingHeader";
 import HoursCard from "../../components/home/HoursCard";
+import HoursCardSkeleton from "../../components/home/HoursCardSkeleton";
 import TopTracksSection from "../../components/home/TopTracksSection";
 import TopArtistsSection from "../../components/home/TopArtistsSection";
+import StreakStatsRowSkeleton from "../../components/home/StreakStatsRowSkeleton";
 import StreakStatsRow from "../../components/home/StreakStatsRow";
 
 export default function Home() {
@@ -21,23 +23,21 @@ export default function Home() {
 			className="flex-1 bg-background"
 			contentContainerClassName="pt-16 p-8"
 		>
-			{loading ? (
-				<Text>Loading...</Text>
+			<GreetingHeader user={user} />
+
+			{statsLoading ? (
+				<HoursCardSkeleton />
 			) : (
-				<>
-					<GreetingHeader user={user} />
+				stats && <HoursCard stats={stats} />
+			)}
 
-					{statsLoading ? (
-						<Text>Loading stats...</Text>
-					) : (
-						stats && <HoursCard stats={stats} />
-					)}
+			<TopTracksSection tracks={topTracks} loading={topTracksLoading} />
+			<TopArtistsSection artists={topArtists} loading={topArtistsLoading} />
 
-					<TopTracksSection tracks={topTracks} loading={topTracksLoading} />
-					<TopArtistsSection artists={topArtists} loading={topArtistsLoading} />
-
-					{!statsLoading && stats && <StreakStatsRow stats={stats} />}
-				</>
+			{statsLoading ? (
+				<StreakStatsRowSkeleton />
+			) : (
+				stats && <StreakStatsRow stats={stats} />
 			)}
 
 			<Pressable

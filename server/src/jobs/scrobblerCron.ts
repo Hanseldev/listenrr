@@ -1,5 +1,6 @@
 import { prisma } from "../lib/prisma.js";
 import { scrobblerUser } from "../services/scrobbler.js";
+import { computeAndCacheStats } from "../services/statsCache.js";
 import cron from "node-cron";
 
 export async function scrobbleAllUsers() {
@@ -8,8 +9,9 @@ export async function scrobbleAllUsers() {
 	for (const user of users) {
 		try {
 			await scrobblerUser(user.id);
+			await computeAndCacheStats(user.id);
 		} catch (err) {
-			console.error(`Failed to scrobble user ${user.id}:`, err);
+			console.error(`Failed to process user ${user.id}:`, err);
 		}
 	}
 }
