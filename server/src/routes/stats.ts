@@ -10,27 +10,26 @@ import {
 } from "../services/stats.js";
 import { getAverageReleaseYearOfLikedTracks } from "../services/likedSongs.js";
 import { getValidAccessToken } from "../services/spotifyAuth.js";
+import { prisma } from "../lib/prisma.js";
 
 const router = Router();
 
 router.get("/summary", requireAuth, async (req, res) => {
 	try {
-		const totalPlaysThisMonth = await getTotalPlaysThisMonth(req.userId);
-		const hoursListened = await getHoursListened(req.userId);
-		const listeningTrend = await getListeningTrend(req.userId);
+		const cached = await prisma.statsCache.findUnique({
+			where: { userId: req.userId },
+		});
 
-		const accessToken = await getValidAccessToken(req.userId);
-		const avgReleaseYear =
-			await getAverageReleaseYearOfLikedTracks(accessToken);
-
-		const longestStreak = await getLongestStreak(req.userId);
+		if (!cached) {
+			return res.status(404).json({ error: "Stats not yet computed" });
+		}
 
 		res.json({
-			totalPlaysThisMonth,
-			hoursListened,
-			listeningTrend,
-			avgReleaseYear,
-			longestStreak,
+			totalPlaysThisMonth: cached.totalPlaysThisMonth,
+			hoursListened: cached.hoursListened,
+			listeningTrend: cached.listeningTrend,
+			avgReleaseYear: cached.avgReleaseYear,
+			longestStreak: cached.longestStreak,
 		});
 	} catch (err) {
 		console.error("Fetch /summary error:", err);
