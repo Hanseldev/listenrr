@@ -1,5 +1,6 @@
 import { View, Text, ScrollView } from "react-native";
 import ArtistCard from "../shared/ArtistCard";
+import ArtistCardSkeleton from "../shared/ArtistCardSkeleton";
 import { Artist } from "../../types/artist";
 
 type TopArtistsSectionProps = {
@@ -27,7 +28,17 @@ export default function TopArtistsSection({
 			</View>
 
 			{loading ? (
-				<Text className="text-text-sub text-sm mt-2">Loading artists...</Text>
+				<ScrollView
+					horizontal
+					showsHorizontalScrollIndicator={false}
+					className="mt-2"
+				>
+					<View className="flex flex-row gap-3">
+						{Array.from({ length: 5 }).map((_, i) => (
+							<ArtistCardSkeleton key={i} />
+						))}
+					</View>
+				</ScrollView>
 			) : (
 				<ScrollView
 					horizontal

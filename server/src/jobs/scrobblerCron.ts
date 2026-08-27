@@ -17,7 +17,7 @@ export async function scrobbleAllUsers() {
 }
 
 export function runCronJob() {
-	scrobbleAllUsers();
+	// scrobbleAllUsers();
 
 	cron.schedule("*/15 * * * *", () => {
 		scrobbleAllUsers();

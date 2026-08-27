@@ -3,6 +3,7 @@ import { useFonts } from "expo-font";
 import { Outfit_400Regular, Outfit_500Medium } from "@expo-google-fonts/outfit";
 import { DMSerifDisplay_400Regular } from "@expo-google-fonts/dm-serif-display";
 import { Slot, useRouter, useSegments } from "expo-router";
+import SplashScreen from "../components/shared/SplashScreen";
 import { View } from "react-native";
 import * as WebBrowser from "expo-web-browser";
 import * as SecureStore from "expo-secure-store";
@@ -44,7 +45,7 @@ export default function RootLayout() {
 	const authChecked = useAuthGate();
 
 	if (!fontsLoaded || !authChecked) {
-		return <View />;
+		return <SplashScreen />;
 	}
 
 	return (

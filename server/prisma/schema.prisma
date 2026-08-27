@@ -62,4 +62,5 @@ model StatsCache {
 	longestStreak       Int
 	computedAt          DateTime @default(now())
 	user                User     @relation(fields: [userId], references: [id])
+  currentStreak         Int @default(0)
 }

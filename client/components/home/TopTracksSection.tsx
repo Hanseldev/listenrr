@@ -1,5 +1,6 @@
 import { View, Text } from "react-native";
 import TrackCard from "./TrackCard";
+import TrackCardSkeleton from "./TrackCardSkeleton";
 import { Track } from "../../types/track";
 
 type TopTracksSectionProps = {
@@ -27,7 +28,11 @@ export default function TopTracksSection({
 			</View>
 
 			{loading ? (
-				<Text className="text-text-sub text-sm mt-2">Loading tracks...</Text>
+				<View className="flex gap-1 mt-2">
+					{Array.from({ length: 5 }).map((_, i) => (
+						<TrackCardSkeleton key={i} />
+					))}
+				</View>
 			) : (
 				<View className="flex gap-1 mt-2">
 					{tracks.map((track, index) => (

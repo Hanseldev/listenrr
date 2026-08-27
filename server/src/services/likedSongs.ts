@@ -1,14 +1,14 @@
 import axios from "axios";
+import { spotifyRequestWithRetry } from "./rateLimitResolver.js";
 
 export async function getLikedTracksPage(
 	accessToken: string,
 	offset: number = 0,
 ) {
-	const response = await axios.get(
-		`https://api.spotify.com/v1/me/tracks?limit=20&offset=${offset}`,
-		{
+	const response = await spotifyRequestWithRetry(() =>
+		axios.get(`https://api.spotify.com/v1/me/tracks?limit=20&offset=${offset}`, {
 			headers: { Authorization: `Bearer ${accessToken}` },
-		},
+		}),
 	);
 
 	return response.data;

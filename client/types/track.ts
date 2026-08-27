@@ -3,5 +3,5 @@ export type Track = {
 	trackName: string;
 	artistNames: string;
 	albumArtUrl: string | null;
-	_count: { trackId: number };
+	_count?: { trackId: number };
 };

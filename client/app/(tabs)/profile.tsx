@@ -25,9 +25,18 @@ export default function Profile() {
 
 			<Pressable
 				onPress={handleLogout}
-				className="bg-surface rounded-2xl p-4 items-center"
+				className="bg-surface rounded-2xl p-4 items-center mb-4"
 			>
 				<Text className="text-accent font-medium">Log Out</Text>
+			</Pressable>
+
+			<Pressable
+				onPress={async () =>
+					console.log("JWT:", await SecureStore.getItemAsync("sessionToken"))
+				}
+				className="bg-surface rounded-2xl p-4 items-center"
+			>
+				<Text className="text-accent font-medium">Print JWT (dev only)</Text>
 			</Pressable>
 		</View>
 	);
