@@ -1,5 +1,5 @@
 import { View, Text, Dimensions } from "react-native";
-import { LineChart } from "react-native-gifted-charts";
+import { CurveType, LineChart } from "react-native-gifted-charts";
 import { StatsSummary } from "../../types/stats";
 
 function percentChange(current: number, last: number): number | null {
@@ -47,11 +47,12 @@ export default function HoursCard({ stats }: HoursCardProps) {
 					xAxisLabelsHeight={0}
 					height={100}
 					color="#C08552"
-					thickness={2.5}
+					thickness={2}
 					startFillColor="#C08552"
 					endFillColor="#C08552"
-					startOpacity={0.15}
-					endOpacity={0.1}
+					startOpacity={0.25}
+					curveType={CurveType.CUBIC}
+					endOpacity={0}
 					areaChart
 					curved
 					hideDataPoints

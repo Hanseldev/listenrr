@@ -10,7 +10,10 @@ export default function TrackCardSkeleton() {
 				<Skeleton className="w-32 h-3" />
 				<Skeleton className="w-20 h-3" />
 			</View>
-			<Skeleton className="w-10 h-6" />
+			<View className="items-end gap-1">
+				<Skeleton className="w-8 h-5" />
+				<Skeleton className="w-10 h-2" />
+			</View>
 		</View>
 	);
 }

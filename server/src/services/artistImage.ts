@@ -1,4 +1,5 @@
 import { prisma } from "../lib/prisma.js";
+import { spotifyRequestWithRetry } from "./rateLimitResolver.js";
 import { getValidAccessToken } from "./spotifyAuth.js";
 import axios from "axios";
 
@@ -14,14 +15,16 @@ export async function getArtistImage(userId: string, artistName: string) {
 	try {
 		const accessToken = await getValidAccessToken(userId);
 
-		const response = await axios.get("https://api.spotify.com/v1/search", {
-			headers: { Authorization: `Bearer ${accessToken}` },
-			params: {
-				q: artistName,
-				type: "artist",
-				limit: 5,
-			},
-		});
+		const response = await spotifyRequestWithRetry(() =>
+			axios.get("https://api.spotify.com/v1/search", {
+				headers: { Authorization: `Bearer ${accessToken}` },
+				params: {
+					q: artistName,
+					type: "artist",
+					limit: 5,
+				},
+			}),
+		);
 
 		const candidates = response.data.artists?.items ?? [];
 		const match = candidates.find(

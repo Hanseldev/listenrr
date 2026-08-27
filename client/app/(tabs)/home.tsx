@@ -39,22 +39,6 @@ export default function Home() {
 			) : (
 				stats && <StreakStatsRow stats={stats} />
 			)}
-
-			<Pressable
-				onPress={() => SecureStore.deleteItemAsync("sessionToken")}
-				className="bg-red-300 p-4 mb-4 hidden"
-			>
-				<Text>Clear session (dev only)</Text>
-			</Pressable>
-
-			<Pressable
-				onPress={async () =>
-					console.log("JWT:", await SecureStore.getItemAsync("sessionToken"))
-				}
-				className="bg-orange-500 p-4 hidden"
-			>
-				<Text>Print JWT (dev only)</Text>
-			</Pressable>
 		</ScrollView>
 	);
 }

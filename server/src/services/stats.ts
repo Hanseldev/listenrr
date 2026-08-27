@@ -1,5 +1,7 @@
 import { prisma } from "../lib/prisma.js";
 import { getArtistImage } from "./artistImage.js";
+import axios from "axios";
+import { spotifyRequestWithRetry } from "./rateLimitResolver.js";
 
 export async function getTotalPlaysThisMonth(userId: string) {
 	const now = new Date();
@@ -203,4 +205,77 @@ export async function getListeningTrend(userId: string) {
 			value: hours,
 		};
 	});
+}
+
+export async function getSpotifyTopTracks(
+	accessToken: string,
+	timeRange: "short_term" | "medium_term" | "long_term",
+	limit: number,
+) {
+	const response = await spotifyRequestWithRetry(() =>
+		axios.get("https://api.spotify.com/v1/me/top/tracks", {
+			headers: { Authorization: `Bearer ${accessToken}` },
+			params: {
+				time_range: timeRange,
+				limit,
+			},
+		}),
+	);
+	return response.data.items.map((item: any) => ({
+		trackId: item.id,
+		trackName: item.name,
+		artistNames: item.artists.map((a: any) => a.name).join(", "),
+		albumArtUrl: item.album?.images?.[0]?.url ?? null,
+	}));
+}
+
+export async function getSpotifyTopArtists(
+	accessToken: string,
+	timeRange: "short_term" | "medium_term" | "long_term",
+	limit: number,
+) {
+	const response = await spotifyRequestWithRetry(() =>
+		axios.get("https://api.spotify.com/v1/me/top/artists", {
+			headers: { Authorization: `Bearer ${accessToken}` },
+			params: { time_range: timeRange, limit },
+		}),
+	);
+
+	return response.data.items.map((item: any) => ({
+		artistName: item.name,
+		imageUrl: item.images?.[0]?.url ?? null,
+	}));
+}
+
+export async function getCurrentStreak(userId: string) {
+	const plays = await prisma.play.findMany({
+		where: { userId },
+		select: { playedAt: true },
+	});
+
+	if (plays.length === 0) return 0;
+
+	const playedDays = new Set(
+		plays.map((p) => p.playedAt.toISOString().slice(0, 10)),
+	);
+
+	const today = new Date();
+	today.setUTCHours(0, 0, 0, 0);
+
+	// If today has no plays, start checking from yesterday instead —
+	// a day still "in progress" shouldn't break an ongoing streak.
+	const todayStr = today.toISOString().slice(0, 10);
+	if (!playedDays.has(todayStr)) {
+		today.setUTCDate(today.getUTCDate() - 1);
+	}
+
+	let streak = 0;
+	const cursor = new Date(today);
+
+	while (playedDays.has(cursor.toISOString().slice(0, 10))) {
+		streak++;
+		cursor.setUTCDate(cursor.getUTCDate() - 1);
+	}
+
+	return streak;
 }

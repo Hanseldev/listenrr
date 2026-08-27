@@ -12,4 +12,5 @@ export type StatsSummary = {
 	listeningTrend: TrendPoint[];
 	avgReleaseYear: number;
 	longestStreak: number;
+	currentStreak: number;
 };

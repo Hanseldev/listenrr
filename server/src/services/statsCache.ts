@@ -5,6 +5,7 @@ import {
 	getHoursListened,
 	getListeningTrend,
 	getLongestStreak,
+	getCurrentStreak
 } from "./stats.js";
 import { getAverageReleaseYearOfLikedTracks } from "./likedSongs.js";
 
@@ -14,10 +15,20 @@ export async function computeAndCacheStats(userId: string) {
 		const hoursListened = await getHoursListened(userId);
 		const listeningTrend = await getListeningTrend(userId);
 		const longestStreak = await getLongestStreak(userId);
+		const currentStreak = await getCurrentStreak(userId);
 
-		const accessToken = await getValidAccessToken(userId);
-		const avgReleaseYear =
-			await getAverageReleaseYearOfLikedTracks(accessToken);
+		let avgReleaseYear: number | null = null;
+		try {
+			const accessToken = await getValidAccessToken(userId);
+			avgReleaseYear = await getAverageReleaseYearOfLikedTracks(accessToken);
+		} catch (err) {
+			console.error(
+				`Skipping avgReleaseYear for user ${userId} (Spotify call failed):`,
+				err instanceof Error ? err.message : err,
+			);
+		}
+
+		const existing = await prisma.statsCache.findUnique({ where: { userId } });
 
 		await prisma.statsCache.upsert({
 			where: { userId },
@@ -25,8 +36,9 @@ export async function computeAndCacheStats(userId: string) {
 				totalPlaysThisMonth,
 				hoursListened,
 				listeningTrend,
-				avgReleaseYear,
+				avgReleaseYear: avgReleaseYear ?? existing?.avgReleaseYear ?? 0,
 				longestStreak,
+				currentStreak,
 				computedAt: new Date(),
 			},
 			create: {
@@ -34,8 +46,9 @@ export async function computeAndCacheStats(userId: string) {
 				totalPlaysThisMonth,
 				hoursListened,
 				listeningTrend,
-				avgReleaseYear,
+				avgReleaseYear: avgReleaseYear ?? 0,
 				longestStreak,
+				currentStreak,
 			},
 		});
 	} catch (err) {

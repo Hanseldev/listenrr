@@ -34,7 +34,7 @@ export default function Skeleton({ className }: SkeletonProps) {
 	return (
 		<Animated.View
 			style={{ opacity }}
-			className={`bg-surface-2 rounded-xl ${className}`}
+			className={`bg-muted/50 rounded-xl ${className}`}
 		/>
 	);
 }
