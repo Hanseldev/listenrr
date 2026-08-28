@@ -1,4 +1,5 @@
-import { View, Text, ScrollView } from "react-native";
+import { View, Text, ScrollView, Pressable } from "react-native";
+import { useRouter } from "expo-router";
 import ArtistCard from "../shared/ArtistCard";
 import ArtistCardSkeleton from "../shared/ArtistCardSkeleton";
 import { Artist } from "../../types/artist";
@@ -12,6 +13,8 @@ export default function TopArtistsSection({
 	artists,
 	loading,
 }: TopArtistsSectionProps) {
+	const router = useRouter();
+
 	return (
 		<View className="w-full mb-6">
 			<View className="flex flex-row justify-between items-baseline">
@@ -24,7 +27,11 @@ export default function TopArtistsSection({
 						All Time
 					</Text>
 				</View>
-				<Text className="text-accent text-sm font-medium">See all ›</Text>
+				<Pressable
+					onPress={() => router.push("/stats-detail/artists?range=all_time")}
+				>
+					<Text className="text-accent text-sm font-medium">See all ›</Text>
+				</Pressable>
 			</View>
 
 			{loading ? (

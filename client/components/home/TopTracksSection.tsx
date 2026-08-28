@@ -1,4 +1,5 @@
-import { View, Text } from "react-native";
+import { View, Text, Pressable } from "react-native";
+import { useRouter } from "expo-router";
 import TrackCard from "./TrackCard";
 import TrackCardSkeleton from "./TrackCardSkeleton";
 import { Track } from "../../types/track";
@@ -12,6 +13,8 @@ export default function TopTracksSection({
 	tracks,
 	loading,
 }: TopTracksSectionProps) {
+	const router = useRouter();
+
 	return (
 		<View className="w-full mb-6">
 			<View className="flex flex-row justify-between items-baseline">
@@ -24,7 +27,11 @@ export default function TopTracksSection({
 						All Time
 					</Text>
 				</View>
-				<Text className="text-accent text-sm font-medium">See all ›</Text>
+				<Pressable
+					onPress={() => router.push("/stats-detail/tracks?range=all_time")}
+				>
+					<Text className="text-accent text-sm font-medium">See all ›</Text>
+				</Pressable>
 			</View>
 
 			{loading ? (

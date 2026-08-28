@@ -3,7 +3,7 @@ import { View, Text, Image } from "react-native";
 type ArtistCardProps = {
 	artistName: string;
 	imageUrl: string | null;
-	playCount: number;
+	playCount?: number;
 };
 
 export default function ArtistCard({
@@ -14,10 +14,7 @@ export default function ArtistCard({
 	return (
 		<View className="w-28 bg-surface rounded-2xl p-3 items-center gap-2">
 			{imageUrl ? (
-				<Image
-					source={{ uri: imageUrl }}
-					className="w-16 h-16 rounded-full"
-				/>
+				<Image source={{ uri: imageUrl }} className="w-16 h-16 rounded-full" />
 			) : (
 				<View className="w-16 h-16 rounded-full bg-muted" />
 			)}
@@ -29,9 +26,11 @@ export default function ArtistCard({
 				{artistName}
 			</Text>
 
-			<Text className="text-accent text-xs font-semibold">
-				{playCount} plays
-			</Text>
+			{playCount !== undefined && (
+				<Text className="text-accent text-xs font-semibold">
+					{playCount} plays
+				</Text>
+			)}
 		</View>
 	);
 }

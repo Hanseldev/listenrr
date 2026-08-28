@@ -13,4 +13,5 @@ export type StatsSummary = {
 	avgReleaseYear: number;
 	longestStreak: number;
 	currentStreak: number;
+	avgTrackDuration: string;
 };

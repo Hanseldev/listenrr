@@ -34,12 +34,14 @@ export default function TrackCard({
 				</Text>
 			</View>
 
-			<View className="items-end">
-				<Text className="text-text font-serif font-bold text-center text-xl">
-					{playCount}
-				</Text>
-				<Text className="text-text-sub text-[10px] uppercase">plays</Text>
-			</View>
+			{playCount !== undefined && playCount !== null && (
+				<View className="items-end">
+					<Text className="text-text font-serif font-bold text-lg">
+						{playCount}
+					</Text>
+					<Text className="text-text-sub text-[10px] uppercase">plays</Text>
+				</View>
+			)}
 		</View>
 	);
 }

@@ -279,3 +279,17 @@ export async function getCurrentStreak(userId: string) {
 
 	return streak;
 }
+
+export async function getAverageTrackDuration(userId: string) {
+	const result = await prisma.play.aggregate({
+		where: { userId },
+		_avg: { durationMs: true },
+	});
+
+	const avgMs = result._avg.durationMs ?? 0;
+	const totalSeconds = Math.round(avgMs / 1000);
+	const minutes = Math.floor(totalSeconds / 60);
+	const seconds = totalSeconds % 60;
+
+	return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+}

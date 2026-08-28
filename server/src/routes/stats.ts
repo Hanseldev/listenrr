@@ -2,16 +2,13 @@ import { Router } from "express";
 import { requireAuth } from "../middleware/auth.js";
 import { getValidAccessToken } from "../services/spotifyAuth.js";
 import {
-	getTotalPlaysThisMonth,
-	getHoursListened,
-	getListeningTrend,
-	getLongestStreak,
+	
 	getTopTracks,
 	getTopArtists,
 	getSpotifyTopTracks,
 	getSpotifyTopArtists,
 } from "../services/stats.js";
-import { getAverageReleaseYearOfLikedTracks } from "../services/likedSongs.js";
+
 import { prisma } from "../lib/prisma.js";
 
 const router = Router();
@@ -41,6 +38,7 @@ router.get("/summary", requireAuth, async (req, res) => {
 			avgReleaseYear: cached.avgReleaseYear,
 			longestStreak: cached.longestStreak,
 			currentStreak: cached.currentStreak,
+			avgTrackDuration: cached.avgTrackDuration
 		});
 	} catch (err) {
 		console.error("Fetch /summary error:", err);

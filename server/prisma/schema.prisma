@@ -63,4 +63,5 @@ model StatsCache {
 	computedAt          DateTime @default(now())
 	user                User     @relation(fields: [userId], references: [id])
   currentStreak         Int @default(0)
+  avgTrackDuration String @default("0:00")
 }
