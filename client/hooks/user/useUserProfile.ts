@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { api } from "../lib/api";
-import { UserProfile } from "../types/user";
+import { api } from "../../lib/api";
+import { UserProfile } from "../../types/user";
 
 export function useUserProfile() {
 	const [user, setUser] = useState<UserProfile | null>(null);

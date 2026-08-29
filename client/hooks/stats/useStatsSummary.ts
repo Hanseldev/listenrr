@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { api } from "../lib/api";
-import { StatsSummary } from "../types/stats";
+import { api } from "../../lib/api";
+import { StatsSummary } from "../../types/stats";
 
 export function useStatsSummary() {
 	const [stats, setStats] = useState<StatsSummary | null>(null);

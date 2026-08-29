@@ -25,7 +25,7 @@ export default function FeaturedStatCard({
 			)}
 
 			<Text
-				className="text-text font-semibold text- text-center"
+				className="text-text font-semibold text-sm text-center w-full"
 				numberOfLines={1}
 			>
 				{title}
@@ -33,18 +33,18 @@ export default function FeaturedStatCard({
 
 			{subtitle && (
 				<Text
-					className="text-text-sub text-xs text-center"
+					className="text-text-sub text-xs text-center w-full"
 					numberOfLines={1}
 				>
 					{subtitle}
 				</Text>
 			)}
 
-			{playCount !== undefined && (
-				<Text className="text-accent text-xs font-semibold">
+			{playCount !== undefined ? (
+				<Text className="text-accent text-xs font-semibold w-full text-center">
 					{playCount} plays
 				</Text>
-			)}
+			) : (<Text numberOfLines={1}></Text>)}
 		</View>
 	);
 }

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { api } from "../lib/api";
-import { Track } from "../types/track";
+import { api } from "../../lib/api";
+import { Track } from "../../types/track";
 
 export function useTopTracks(limit: number = 5) {
 	const [topTracks, setTopTracks] = useState<Track[]>([]);

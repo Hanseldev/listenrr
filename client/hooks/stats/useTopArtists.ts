@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { api } from "../lib/api";
-import { Artist } from "../types/artist";
+import { api } from "../../lib/api";
+import { Artist } from "../../types/artist";
 
 export function useTopArtists(limit: number = 5) {
 	const [topArtists, setTopArtists] = useState<Artist[]>([]);

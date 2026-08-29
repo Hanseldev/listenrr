@@ -19,12 +19,15 @@ export default function CurrentlyPlayingBanner({
 			{data.albumArtUrl ? (
 				<Image
 					source={{ uri: data.albumArtUrl }}
-					className="w-12 h-12 rounded-md"
+					className="w-20 h-20 rounded-md"
 				/>
 			) : (
 				<View className="w-12 h-12 rounded-md bg-muted" />
 			)}
 			<View className="flex-1">
+				<Text className="text-text font-semibold text-lg tracking-wide mb-1" numberOfLines={1}>
+					Currently Playing
+				</Text>
 				<Text className="text-text font-medium text-sm" numberOfLines={1}>
 					{data.trackName}
 				</Text>
@@ -32,9 +35,9 @@ export default function CurrentlyPlayingBanner({
 					{data.artistNames}
 				</Text>
 			</View>
-			<View
+			{/* <View
 				className={`w-2 h-2 rounded-full ${data.isPlaying ? "bg-accent" : "bg-muted"}`}
-			/>
+			/> */}
 		</View>
 	);
 }

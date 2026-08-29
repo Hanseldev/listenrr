@@ -1,134 +1,51 @@
-import { useState, useEffect } from "react";
-import { View, Text, ScrollView, Pressable, Image } from "react-native";
-import { useRouter } from "expo-router";
-import { api } from "../../lib/api";
+import { useState } from "react";
+import { View, Text, ScrollView, Pressable } from "react-native";
+import { router } from "expo-router";
 import { useStatsSummary } from "../../hooks/stats/useStatsSummary";
+import { useCurrentlyPlaying } from "../../hooks/stats/useCurrentlyPlaying";
+import { useFeaturedTrack } from "../../hooks/stats/useFeaturedTrack";
+import { useFeaturedArtist } from "../../hooks/stats/useFeaturedArtist";
+import { useTopAlbums } from "../../hooks/stats/useTopAlbums";
+import { usePlaylists } from "../../hooks/stats/usePlaylists";
+import { useObscurity } from "../../hooks/stats/useObscurity";
+
 import TimeRangeSelector, {
 	TimeRange,
 } from "../../components/stats/TimeRangeSelector";
+import CurrentlyPlayingBanner from "../../components/stats/CurrentlyPlayingBanner";
+import CurrentlyPlayingBannerSkeleton from "../../components/stats/skeletons/CurrentlyPlayingBannerSkeleton";
+import FeaturedTrackSection from "../../components/stats/FeaturedTrackSection";
+import FeaturedArtistSection from "../../components/stats/FeaturedArtistSection";
+import FeaturedStatCardSkeleton from "../../components/stats/skeletons/FeaturedStatCardSkeleton";
+import AlbumCard from "../../components/stats/AlbumCard";
+import AlbumCardSkeleton from "../../components/stats/skeletons/AlbumCardSkeleton";
+import PlaylistCard from "../../components/stats/PlaylistCard";
+import PlaylistCardSkeleton from "../../components/stats/skeletons/PlaylistCardSkeleton";
+import ObscurityBadge from "../../components/stats/ObscurityBadge";
+import ObscurityBadgeSkeleton from "../../components/stats/skeletons/ObscurityBadgeSkeleton";
 import Skeleton from "../../components/shared/Skeleton";
-import FeaturedStatCard from "../../components/stats/FeaturedStatCard";
-import { LineChart } from "react-native-gifted-charts";
-import { Dimensions } from "react-native";
-import { Track } from "../../types/track";
-import { Artist } from "../../types/artist";
 
 export default function Stats() {
 	const [range, setRange] = useState<TimeRange>("all_time");
-	const router = useRouter();
+
 	const { stats, loading: statsLoading } = useStatsSummary();
+	const { currentlyPlaying, loading: currentlyPlayingLoading } =
+		useCurrentlyPlaying();
+	const { track: topTrack, loading: topTrackLoading } = useFeaturedTrack(range);
+	const { artist: topArtist, loading: topArtistLoading } =
+		useFeaturedArtist(range);
+	const { albums, loading: albumsLoading } = useTopAlbums(range);
+	const { playlists, loading: playlistsLoading } = usePlaylists();
+	const { obscurity, loading: obscurityLoading } = useObscurity(range);
 
-	const [topTrack, setTopTrack] = useState<Track | null>(null);
-	const [topArtist, setTopArtist] = useState<Artist | null>(null);
-
-	const [currentlyPlaying, setCurrentlyPlaying] = useState<any>(null);
-	const [currentlyPlayingLoading, setCurrentlyPlayingLoading] = useState(true);
-	const [topAlbums, setTopAlbums] = useState<any[]>([]);
-	const [genres, setGenres] = useState<any[]>([]);
-	const [obscurity, setObscurity] = useState<number | null>(null);
-	const [playlists, setPlaylists] = useState<any[]>([]);
-	const [recentlyPlayed, setRecentlyPlayed] = useState<any[]>([]);
-
-	useEffect(() => {
-		(async () => {
-			try {
-				const data = await api.get("/api/stats/currently-playing");
-				setCurrentlyPlaying(data);
-			} catch (err) {
-				console.error("Failed to fetch currently playing:", err);
-			} finally {
-				setCurrentlyPlayingLoading(false);
-			}
-		})();
-	}, []);
-
-	useEffect(() => {
-		(async () => {
-			try {
-				const albums = await api.get(
-					`/api/stats/top-albums?range=${range}&limit=5`,
-				);
-				setTopAlbums(albums);
-			} catch (err) {
-				console.error("Failed to fetch top albums:", err);
-			}
-		})();
-	}, [range]);
-
-	useEffect(() => {
-		if (range === "all_time") {
-			setGenres([]);
-			setObscurity(null);
-			return;
-		}
-		(async () => {
-			try {
-				const genreData = await api.get(`/api/stats/genres?range=${range}`);
-				setGenres(genreData);
-			} catch (err) {
-				console.error("Failed to fetch genres:", err);
-			}
-			try {
-				const obscurityData = await api.get(
-					`/api/stats/obscurity?range=${range}`,
-				);
-				setObscurity(obscurityData.obscurity);
-			} catch (err) {
-				console.error("Failed to fetch obscurity:", err);
-			}
-		})();
-	}, [range]);
-
-	useEffect(() => {
-		(async () => {
-			try {
-				const data = await api.get("/api/stats/playlists");
-				setPlaylists(data);
-			} catch (err) {
-				console.error("Failed to fetch playlists:", err);
-			}
-		})();
-	}, []);
-
-	useEffect(() => {
-		(async () => {
-			try {
-				const data = await api.get("/api/stats/recently-played?limit=15");
-				setRecentlyPlayed(data);
-			} catch (err) {
-				console.error("Failed to fetch recently played:", err);
-			}
-		})();
-	}, []);
-
-	useEffect(() => {
-		(async () => {
-			try {
-				const tracks = await api.get(
-					`/api/stats/top-tracks?range=${range}&limit=1`,
-				);
-				setTopTrack(tracks[0] ?? null);
-			} catch (err) {
-				console.error("Failed to fetch top track:", err);
-			}
-		})();
-	}, [range]);
-
-	useEffect(() => {
-		(async () => {
-			try {
-				const artists = await api.get(
-					`/api/stats/top-artists?range=${range}&limit=1`,
-				);
-				setTopArtist(artists[0] ?? null);
-			} catch (err) {
-				console.error("Failed to fetch top artist:", err);
-			}
-		})();
-	}, [range]);
-
-	const screenWidth = Dimensions.get("window").width;
-	const chartWidth = screenWidth - 64;
+	const isPageLoading =
+		statsLoading ||
+		currentlyPlayingLoading ||
+		topTrackLoading ||
+		topArtistLoading ||
+		albumsLoading ||
+		playlistsLoading ||
+		(range !== "all_time" && obscurityLoading);
 
 	return (
 		<ScrollView
@@ -139,153 +56,160 @@ export default function Stats() {
 
 			<TimeRangeSelector selected={range} onChange={setRange} />
 
-			{currentlyPlayingLoading ? (
-				<View className="flex flex-row items-center gap-3 bg-surface-2 rounded-2xl p-3 mb-4">
-					<Skeleton className="w-12 h-12 rounded-md" />
-					<View className="flex-1 gap-1">
-						<Skeleton className="w-32 h-3" />
-						<Skeleton className="w-20 h-3" />
-					</View>
-				</View>
-			) : currentlyPlaying ? (
-				<View className="flex flex-row items-center gap-3 bg-surface-2 rounded-2xl p-3 mb-4">
-					{currentlyPlaying.albumArtUrl ? (
-						<Image
-							source={{ uri: currentlyPlaying.albumArtUrl }}
-							className="w-12 h-12 rounded-md"
-						/>
-					) : (
-						<View className="w-12 h-12 rounded-md bg-muted" />
-					)}
-					<View className="flex-1">
-						<Text className="text-text font-medium text-sm" numberOfLines={1}>
-							{currentlyPlaying.trackName}
-						</Text>
-						<Text className="text-text-sub text-xs" numberOfLines={1}>
-							{currentlyPlaying.artistNames}
-						</Text>
-					</View>
-					<View
-						className={`w-2 h-2 rounded-full ${
-							currentlyPlaying.isPlaying ? "bg-accent" : "bg-muted"
-						}`}
-					/>
-				</View>
-			) : null}
-
-			{/* Featured Track/Artist — square cards */}
-			<View className="flex flex-row gap-3 mb-6">
-				<View className="flex-1">
-					<View className="flex flex-row justify-between items-center mb-2">
-						<Text className="font-serif text-text-sub font-semibold uppercase text-xs">
-							Top Track
-						</Text>
-						<Pressable
-							onPress={() => router.push(`/stats-detail/tracks?range=${range}`)}
-							hitSlop={8}
-						>
-							<Text className="text-accent text-lg font-bold">›</Text>
-						</Pressable>
-					</View>
-					{topTrack && (
-						<FeaturedStatCard
-							imageUrl={topTrack.albumArtUrl}
-							title={topTrack.trackName}
-							subtitle={topTrack.artistNames}
-							playCount={topTrack._count?.trackId}
-						/>
-					)}
-				</View>
-
-				<View className="flex-1">
-					<View className="flex flex-row justify-between items-center mb-2">
-						<Text className="font-serif text-text-sub font-semibold uppercase text-xs">
-							Top Artist
-						</Text>
-						<Pressable
-							onPress={() =>
-								router.push(`/stats-detail/artists?range=${range}`)
-							}
-							hitSlop={8}
-						>
-							<Text className="text-accent text-lg font-bold">›</Text>
-						</Pressable>
-					</View>
-					{topArtist && (
-						<FeaturedStatCard
-							imageUrl={topArtist.imageUrl}
-							title={topArtist.artistName}
-							playCount={topArtist.playCount}
-						/>
-					)}
-				</View>
-			</View>
-
-			{/* Circular streak badge + wide duration/release-year strip */}
-			{!statsLoading && stats && (
+			{isPageLoading ? (
 				<>
+					<CurrentlyPlayingBannerSkeleton />
+
+					<View className="flex flex-row gap-3 mb-6">
+						<View className="flex-1">
+							<Skeleton className="w-20 h-3 mb-2" />
+							<FeaturedStatCardSkeleton />
+						</View>
+						<View className="flex-1">
+							<Skeleton className="w-20 h-3 mb-2" />
+							<FeaturedStatCardSkeleton />
+						</View>
+					</View>
+
 					<View className="flex flex-row items-center gap-4 mb-6">
 						<View className="w-24 h-24 rounded-full bg-surface-2 items-center justify-center">
-							<Text className="text-text font-serif font-bold text-2xl">
-								{stats.currentStreak}
-							</Text>
-							<Text className="text-text-sub text-[10px] uppercase">
-								day streak
-							</Text>
+							<Skeleton className="w-10 h-6" />
 						</View>
-
 						<View className="flex-1 bg-surface rounded-xl p-4 gap-3">
-							<View className="flex flex-row justify-between">
-								<Text className="text-text-sub text-xs uppercase font-semibold">
-									Avg Duration
-								</Text>
-								<Text className="text-text font-semibold text-sm">
-									{stats.avgTrackDuration}
-								</Text>
-							</View>
-							<View className="flex flex-row justify-between">
-								<Text className="text-text-sub text-xs uppercase font-semibold">
-									Avg Release Year
-								</Text>
-								<Text className="text-text font-semibold text-sm">
-									{stats.avgReleaseYear}
-								</Text>
-							</View>
+							<Skeleton className="w-full h-4" />
+							<Skeleton className="w-full h-4" />
 						</View>
 					</View>
 
-					{/* Chart — reused from Home, full width */}
-					<View className="w-full bg-surface-2 rounded-2xl p-4 mb-6">
-						<Text className="text-text-sub uppercase font-semibold text-sm mb-2">
-							Listening Trend
-						</Text>
-						<View className="w-full -mt-6">
-							<LineChart
-								data={stats.listeningTrend}
-								adjustToWidth
-								parentWidth={chartWidth}
-								yAxisLabelWidth={0}
-								xAxisLabelsHeight={0}
-								height={100}
-								color="#C08552"
-								thickness={2}
-								startFillColor="#C08552"
-								endFillColor="#C08552"
-								startOpacity={0.25}
-								endOpacity={0}
-								areaChart
-								curved
-								hideDataPoints
-								hideYAxisText
-								hideAxesAndRules
-								xAxisThickness={0}
-								yAxisThickness={0}
-								initialSpacing={0}
-								endSpacing={0}
-								disableScroll
-							/>
+					{range !== "all_time" && (
+						<View className="mb-6">
+							<Skeleton className="w-20 h-3 mb-2" />
+							<ObscurityBadgeSkeleton />
+						</View>
+					)}
+
+					<View className="mb-6">
+						<Skeleton className="w-24 h-3 mb-2" />
+						<View className="flex flex-row gap-3">
+							{Array.from({ length: 5 }).map((_, i) => (
+								<AlbumCardSkeleton key={i} />
+							))}
 						</View>
 					</View>
+
+					<View className="mb-6">
+						<Skeleton className="w-24 h-3 mb-2" />
+						<View className="flex flex-row gap-3">
+							{Array.from({ length: 5 }).map((_, i) => (
+								<PlaylistCardSkeleton key={i} />
+							))}
+						</View>
+					</View>
+				</>
+			) : (
+				<>
+					<CurrentlyPlayingBanner data={currentlyPlaying} />
+
+					<View className="flex flex-row gap-3 mb-6">
+						<FeaturedTrackSection
+							track={topTrack}
+							loading={false}
+							range={range}
+						/>
+						<FeaturedArtistSection
+							artist={topArtist}
+							loading={false}
+							range={range}
+						/>
+					</View>
+
+					{stats && (
+						<>
+							<View className="flex flex-row items-center gap-4 mb-6">
+								<View className="w-24 h-24 rounded-full bg-surface-2 items-center justify-center">
+									<Text className="text-text font-serif font-bold text-2xl">
+										{stats.currentStreak}
+									</Text>
+									<Text className="text-text-sub text-[10px] uppercase">
+										day streak
+									</Text>
+								</View>
+
+								<View className="flex-1 bg-surface rounded-xl p-4 gap-3">
+									<View className="flex flex-row justify-between">
+										<Text className="text-text-sub text-xs uppercase font-semibold">
+											Avg Duration
+										</Text>
+										<Text className="text-text font-semibold text-sm">
+											{stats.avgTrackDuration}
+										</Text>
+									</View>
+									<View className="flex flex-row justify-between">
+										<Text className="text-text-sub text-xs uppercase font-semibold">
+											Avg Release Year
+										</Text>
+										<Text className="text-text font-semibold text-sm">
+											{stats.avgReleaseYear}
+										</Text>
+									</View>
+								</View>
+							</View>
+						</>
+					)}
+
+					{range !== "all_time" && obscurity !== null && (
+						<View className="mb-6">
+							<Text className="font-serif text-text-sub font-semibold uppercase text-xs mb-2">
+								Obscurity
+							</Text>
+							<ObscurityBadge obscurity={obscurity} />
+						</View>
+					)}
+
+					<View className="mb-6">
+						<View className="flex flex-row justify-between items-center mb-2">
+							<Text className="font-serif text-text-sub font-semibold uppercase text-xs">
+								Top Albums
+							</Text>
+							<Pressable
+								onPress={() =>
+									router.push(`/stats-detail/albums?range=${range}`)
+								}
+								hitSlop={8}
+							>
+								<Text className="text-accent text-sm font-normal">
+									See all ›
+								</Text>
+							</Pressable>
+						</View>
+						<ScrollView horizontal showsHorizontalScrollIndicator={false}>
+							<View className="flex flex-row gap-3">
+								{albums.map((album, i) => (
+									<AlbumCard
+										key={i}
+										albumName={album.albumName}
+										albumArtUrl={album.albumArtUrl}
+										playCount={album._count?.albumName ?? album.count}
+									/>
+								))}
+							</View>
+						</ScrollView>
+					</View>
+
+					{playlists.length > 0 && (
+						<View className="mb-6">
+							<Text className="font-serif text-text-sub font-semibold uppercase text-xs mb-2">
+								Playlists
+							</Text>
+							<ScrollView horizontal showsHorizontalScrollIndicator={false}>
+								<View className="flex flex-row gap-3">
+									{playlists.map((playlist, i) => (
+										<PlaylistCard key={i} {...playlist} />
+									))}
+								</View>
+							</ScrollView>
+						</View>
+					)}
 				</>
 			)}
 		</ScrollView>
