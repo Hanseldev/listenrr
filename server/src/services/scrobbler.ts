@@ -14,6 +14,7 @@ interface SpotifyAlbumImage {
 }
 
 interface SpotifyAlbum {
+	name: string;
 	images: SpotifyAlbumImage[];
 	release_date: string;
 }
@@ -31,16 +32,29 @@ interface SpotifyRecentlyPlayedItem {
 	played_at: string;
 }
 
+interface SpotifyContext {
+	type: string; // "playlist", "album", "artist", etc.
+	uri: string;
+}
+
+interface SpotifyRecentlyPlayedItem {
+	track: SpotifyTrack;
+	played_at: string;
+	context: SpotifyContext | null;
+}
+
 // output
 
 interface MappedPlay {
 	trackId: string;
 	trackName: string;
 	artistNames: string;
+	albumName: string | null;
 	albumArtUrl: string | null;
 	durationMs: number;
 	releaseYear: number | null;
 	playedAt: Date;
+	playlistUri: string | null;
 }
 
 export function mapSpotifyItemToPlay(
@@ -55,20 +69,26 @@ export function mapSpotifyItemToPlay(
 
 	const artistNames = track.artists.map((artist) => artist.name).join(", ");
 
+	const albumName = track.album.name ?? null;
 	const albumArtUrl = track.album.images[0]?.url ?? null;
 
 	const releaseYear = track.album.release_date
 		? parseInt(track.album.release_date.slice(0, 4), 10)
 		: null;
 
+	const playlistUri =
+		item.context?.type === "playlist" ? item.context.uri : null;
+
 	return {
 		trackId,
 		trackName,
 		artistNames,
+		albumName,
 		albumArtUrl,
 		durationMs,
 		releaseYear,
 		playedAt,
+		playlistUri,
 	};
 }
 

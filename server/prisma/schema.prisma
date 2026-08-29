@@ -35,9 +35,11 @@ model Play {
   trackId       String   // Spotify's track ID
   trackName     String
   artistNames   String   // comma-joined for simplicity, e.g. "Artist A, Artist B"
+  albumName     String?
   albumArtUrl   String?
   durationMs    Int
   releaseYear   Int?
+  playlistUri   String?  // if the track was played from a playlist, this is the Spotify URI of that playlist
 
   playedAt      DateTime // when the track was played (from Spotify)
   createdAt     DateTime @default(now()) // when we stored it
