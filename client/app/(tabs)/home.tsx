@@ -1,9 +1,9 @@
 import { View, Text, ScrollView, Pressable } from "react-native";
 import * as SecureStore from "expo-secure-store";
-import { useUserProfile } from "../../hooks/useUserProfile";
-import { useStatsSummary } from "../../hooks/useStatsSummary";
-import { useTopTracks } from "../../hooks/useTopTracks";
-import { useTopArtists } from "../../hooks/useTopArtists";
+import { useUserProfile } from "../../hooks/user/useUserProfile";
+import { useStatsSummary } from "../../hooks/stats/useStatsSummary";
+import { useTopTracks } from "../../hooks/stats/useTopTracks";
+import { useTopArtists } from "../../hooks/stats/useTopArtists";
 import GreetingHeader from "../../components/home/GreetingHeader";
 import HoursCard from "../../components/home/HoursCard";
 import HoursCardSkeleton from "../../components/home/HoursCardSkeleton";

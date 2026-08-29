@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
-import { View, Text, ScrollView, Pressable } from "react-native";
+import { View, Text, ScrollView, Pressable, Image } from "react-native";
 import { useRouter } from "expo-router";
 import { api } from "../../lib/api";
-import { useStatsSummary } from "../../hooks/useStatsSummary";
+import { useStatsSummary } from "../../hooks/stats/useStatsSummary";
 import TimeRangeSelector, {
 	TimeRange,
 } from "../../components/stats/TimeRangeSelector";
+import Skeleton from "../../components/shared/Skeleton";
 import FeaturedStatCard from "../../components/stats/FeaturedStatCard";
 import { LineChart } from "react-native-gifted-charts";
 import { Dimensions } from "react-native";
@@ -19,6 +20,86 @@ export default function Stats() {
 
 	const [topTrack, setTopTrack] = useState<Track | null>(null);
 	const [topArtist, setTopArtist] = useState<Artist | null>(null);
+
+	const [currentlyPlaying, setCurrentlyPlaying] = useState<any>(null);
+	const [currentlyPlayingLoading, setCurrentlyPlayingLoading] = useState(true);
+	const [topAlbums, setTopAlbums] = useState<any[]>([]);
+	const [genres, setGenres] = useState<any[]>([]);
+	const [obscurity, setObscurity] = useState<number | null>(null);
+	const [playlists, setPlaylists] = useState<any[]>([]);
+	const [recentlyPlayed, setRecentlyPlayed] = useState<any[]>([]);
+
+	useEffect(() => {
+		(async () => {
+			try {
+				const data = await api.get("/api/stats/currently-playing");
+				setCurrentlyPlaying(data);
+			} catch (err) {
+				console.error("Failed to fetch currently playing:", err);
+			} finally {
+				setCurrentlyPlayingLoading(false);
+			}
+		})();
+	}, []);
+
+	useEffect(() => {
+		(async () => {
+			try {
+				const albums = await api.get(
+					`/api/stats/top-albums?range=${range}&limit=5`,
+				);
+				setTopAlbums(albums);
+			} catch (err) {
+				console.error("Failed to fetch top albums:", err);
+			}
+		})();
+	}, [range]);
+
+	useEffect(() => {
+		if (range === "all_time") {
+			setGenres([]);
+			setObscurity(null);
+			return;
+		}
+		(async () => {
+			try {
+				const genreData = await api.get(`/api/stats/genres?range=${range}`);
+				setGenres(genreData);
+			} catch (err) {
+				console.error("Failed to fetch genres:", err);
+			}
+			try {
+				const obscurityData = await api.get(
+					`/api/stats/obscurity?range=${range}`,
+				);
+				setObscurity(obscurityData.obscurity);
+			} catch (err) {
+				console.error("Failed to fetch obscurity:", err);
+			}
+		})();
+	}, [range]);
+
+	useEffect(() => {
+		(async () => {
+			try {
+				const data = await api.get("/api/stats/playlists");
+				setPlaylists(data);
+			} catch (err) {
+				console.error("Failed to fetch playlists:", err);
+			}
+		})();
+	}, []);
+
+	useEffect(() => {
+		(async () => {
+			try {
+				const data = await api.get("/api/stats/recently-played?limit=15");
+				setRecentlyPlayed(data);
+			} catch (err) {
+				console.error("Failed to fetch recently played:", err);
+			}
+		})();
+	}, []);
 
 	useEffect(() => {
 		(async () => {
@@ -57,6 +138,40 @@ export default function Stats() {
 			<Text className="font-bold text-2xl text-text mb-4">Stats</Text>
 
 			<TimeRangeSelector selected={range} onChange={setRange} />
+
+			{currentlyPlayingLoading ? (
+				<View className="flex flex-row items-center gap-3 bg-surface-2 rounded-2xl p-3 mb-4">
+					<Skeleton className="w-12 h-12 rounded-md" />
+					<View className="flex-1 gap-1">
+						<Skeleton className="w-32 h-3" />
+						<Skeleton className="w-20 h-3" />
+					</View>
+				</View>
+			) : currentlyPlaying ? (
+				<View className="flex flex-row items-center gap-3 bg-surface-2 rounded-2xl p-3 mb-4">
+					{currentlyPlaying.albumArtUrl ? (
+						<Image
+							source={{ uri: currentlyPlaying.albumArtUrl }}
+							className="w-12 h-12 rounded-md"
+						/>
+					) : (
+						<View className="w-12 h-12 rounded-md bg-muted" />
+					)}
+					<View className="flex-1">
+						<Text className="text-text font-medium text-sm" numberOfLines={1}>
+							{currentlyPlaying.trackName}
+						</Text>
+						<Text className="text-text-sub text-xs" numberOfLines={1}>
+							{currentlyPlaying.artistNames}
+						</Text>
+					</View>
+					<View
+						className={`w-2 h-2 rounded-full ${
+							currentlyPlaying.isPlaying ? "bg-accent" : "bg-muted"
+						}`}
+					/>
+				</View>
+			) : null}
 
 			{/* Featured Track/Artist — square cards */}
 			<View className="flex flex-row gap-3 mb-6">
